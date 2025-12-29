@@ -44,45 +44,71 @@
             box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
             border: 1px solid rgba(168, 85, 247, 0.4);
         }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <header class="sticky-header mb-8 pb-4">
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-black text-blue-500 pt-4 text-center">🛡️ 90-DAY STRICT PROGRAM</h1>
-            <p class="text-slate-400 text-center mb-6">วินัยคือจุดเริ่มต้นของความสำเร็จ</p>
+            <h1 class="text-3xl font-black text-blue-500 pt-4 text-center uppercase tracking-tighter">🛡️ 90-DAY STRICT PROGRAM</h1>
             
             <!-- AI Analysis Dashboard -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div class="ai-glow bg-slate-900 p-4 rounded-2xl">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="text-purple-400 text-xl">🧠</span>
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-purple-400">AI Status Analysis</h2>
+                        <h2 class="text-[10px] font-bold uppercase tracking-widest text-purple-400">AI Performance Insight</h2>
                     </div>
-                    <p id="ai-status" class="text-sm text-slate-300 font-medium italic">กำลังวิเคราะห์พฤติกรรมการฝึก...</p>
+                    <p id="ai-status" class="text-sm text-slate-300 font-medium italic">เริ่มต้นการฝึกเพื่อรวบรวมข้อมูลวิเคราะห์...</p>
                 </div>
                 
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
-                    <span class="text-xs uppercase tracking-wider block text-slate-400 mb-1">Workout Progress</span>
+                    <span class="text-[10px] uppercase tracking-wider block text-slate-400 mb-1 font-bold">Consistency Index</span>
                     <div class="flex items-end gap-2">
                         <span id="progress-percent" class="text-3xl font-black text-green-400 leading-none">0%</span>
-                        <span id="completed-count" class="text-sm text-slate-500 pb-1">0/39 days</span>
+                        <span id="completed-count" class="text-xs text-slate-500 pb-1">0/39 days</span>
                     </div>
                 </div>
 
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
-                    <span class="text-xs uppercase tracking-wider block text-slate-400 mb-1">Body Recovery</span>
+                    <span class="text-[10px] uppercase tracking-wider block text-slate-400 mb-1 font-bold">Body Recovery Status</span>
                     <div class="w-full bg-slate-700 h-2 rounded-full mt-2">
                         <div id="recovery-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
                     </div>
-                    <span id="recovery-text" class="text-[10px] text-blue-300 mt-1 block">Optimal - พร้อมสำหรับการฝึก</span>
+                    <span id="recovery-text" class="text-[10px] text-blue-300 mt-1 block">Optimal - กล้ามเนื้อพร้อมรับแรงต้าน</span>
+                </div>
+            </div>
+
+            <!-- Body Measurement Section -->
+            <div class="mt-4 bg-slate-800/30 p-4 rounded-2xl border border-dashed border-slate-600">
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-3 text-center">📊 บันทึกการพัฒนาของร่างกาย (Body Tracking)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[10px] text-slate-500 uppercase ml-1">น้ำหนัก (kg)</label>
+                        <input type="number" id="weight-input" placeholder="0.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 uppercase ml-1">รอบเอว (inch)</label>
+                        <input type="number" id="waist-input" placeholder="0.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-500 uppercase ml-1">รอบอก (inch)</label>
+                        <input type="number" id="chest-input" placeholder="0.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="saveBodyStats()" class="w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-xs font-bold transition">บันทึกสถิติวันนี้</button>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <div id="calendar-container" class="max-w-4xl mx-auto space-y-6">
+    <div id="calendar-container" class="max-w-4xl mx-auto space-y-6 pb-20">
         <!-- Generated by JS -->
     </div>
 
@@ -127,6 +153,7 @@
         const startDate = new Date();
         const totalDays = 90;
         let completedDays = JSON.parse(localStorage.getItem('completedWorkouts') || "[]");
+        let bodyStats = JSON.parse(localStorage.getItem('bodyStats') || "[]");
 
         function renderCalendar() {
             const container = document.getElementById('calendar-container');
@@ -148,18 +175,18 @@
                     card.innerHTML = `
                         <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
                             <div>
-                                <span class="bg-blue-600/30 text-blue-400 text-xs font-bold px-2 py-1 rounded uppercase mb-2 inline-block">Day ${i + 1} - ${dayName}</span>
+                                <span class="bg-blue-600/30 text-blue-400 text-xs font-bold px-2 py-1 rounded uppercase mb-2 inline-block tracking-widest">Day ${i + 1} - ${dayName}</span>
                                 <h3 class="text-xl font-bold text-white">${plan.title}</h3>
-                                <p class="text-slate-500 text-sm">${dateString}</p>
+                                <p class="text-slate-500 text-xs mt-1 font-medium">${dateString}</p>
                             </div>
-                            <button onclick="toggleDay(${i})" class="w-full md:w-auto px-6 py-3 rounded-xl font-bold transition-all ${completedDays.includes(i) ? 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/20' : 'bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-900/20'}">
-                                ${completedDays.includes(i) ? '✓ COMPLETED' : 'MARK DONE'}
+                            <button onclick="toggleDay(${i})" class="w-full md:w-auto px-8 py-4 rounded-xl font-black text-sm transition-all ${completedDays.includes(i) ? 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-900/30' : 'bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-900/30'}">
+                                ${completedDays.includes(i) ? '✓ COMPLETED' : 'COMPLETE WORKOUT'}
                             </button>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             ${plan.exercises.map(ex => `
-                                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                                    <span class="font-medium text-slate-200 block">${ex.name}</span>
+                                <div class="bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                                    <span class="font-semibold text-slate-200 block text-sm">${ex.name}</span>
                                     <span class="coach-tip text-slate-400">💡 Tip: ${ex.tip}</span>
                                 </div>
                             `).join('')}
@@ -168,10 +195,10 @@
                 } else {
                     card.classList.add('rest');
                     card.innerHTML = `
-                        <div class="flex items-center gap-4 text-slate-500 italic font-medium">
-                            <span class="text-sm">DAY ${i + 1} - ${dayName} (${dateString})</span>
-                            <span class="h-[1px] flex-grow bg-slate-800"></span>
-                            <span class="text-sm">RECOVERY DAY 💤</span>
+                        <div class="flex items-center gap-4 text-slate-600 italic font-medium">
+                            <span class="text-xs font-bold tracking-tighter">DAY ${i + 1} - ${dayName} (${dateString})</span>
+                            <span class="h-[1px] flex-grow bg-slate-800/50"></span>
+                            <span class="text-[10px] uppercase tracking-widest font-black">Recovery Phase 💤</span>
                         </div>
                     `;
                 }
@@ -179,6 +206,24 @@
             }
             updateStats(totalWorkoutDays);
             runAIAnalysis(totalWorkoutDays);
+        }
+
+        function saveBodyStats() {
+            const weight = document.getElementById('weight-input').value;
+            const waist = document.getElementById('waist-input').value;
+            const chest = document.getElementById('chest-input').value;
+            
+            if (!weight && !waist && !chest) return;
+
+            const newStat = {
+                date: new Date().toISOString(),
+                weight, waist, chest
+            };
+            
+            bodyStats.push(newStat);
+            localStorage.setItem('bodyStats', JSON.stringify(bodyStats));
+            alert("บันทึกสถิติสำเร็จ! AI จะใช้ข้อมูลนี้วิเคราะห์การพัฒนาของคุณ");
+            renderCalendar();
         }
 
         function runAIAnalysis(totalWorkoutDays) {
@@ -189,34 +234,48 @@
             const doneCount = completedDays.length;
             const completionRate = (doneCount / totalWorkoutDays) * 100;
 
-            // Simple AI Heuristic for Status
+            // Analysis logic based on completed days and body stats
             if (doneCount === 0) {
-                aiStatus.innerText = "เตรียมความพร้อม! ระบบ AI พร้อมติดตามผลการฝึกของคุณตั้งแต่วันแรก";
-                recoveryBar.style.width = "100%";
-            } else if (completionRate > 90) {
-                aiStatus.innerText = "ยอดเยี่ยม! วินัยของคุณอยู่ในเกณฑ์สูงมาก กล้ามเนื้อกำลังพัฒนาอย่างเต็มที่";
-                recoveryBar.style.width = "85%";
-                recoveryText.innerText = "Stable - ร่างกายกำลังปรับตัวได้ดี";
-            } else if (completionRate > 50) {
-                aiStatus.innerText = "เริ่มเห็นผลลัพธ์! พยายามรักษาความต่อเนื่องต่อไปเพื่อเปลี่ยนสรีระอย่างถาวร";
-                recoveryBar.style.width = "70%";
-                recoveryText.innerText = "Active - ต้องการการพักผ่อนที่มีคุณภาพ";
+                aiStatus.innerText = "เตรียมความพร้อม! AI จะเริ่มวิเคราะห์เมื่อคุณจบการฝึกครั้งแรก";
             } else {
-                aiStatus.innerText = "คำเตือน: วินัยเริ่มลดลง หากขาดการฝึกบ่อยเกินไป ผลลัพธ์ที่สร้างมาจะสูญเปล่า";
-                recoveryBar.style.width = "95%";
-                recoveryText.innerText = "Caution - ร่างกายยังไม่ได้รับการกระตุ้นที่เพียงพอ";
+                let analysisText = "";
+                
+                // Strength Analysis
+                if (completionRate > 80) {
+                    analysisText = "วินัยดีเยี่ยม! ร่างกายกำลังเข้าสู่ช่วง 'Anabolic Phase' (สร้างกล้ามเนื้อ) อย่างเต็มตัว";
+                } else if (completionRate > 40) {
+                    analysisText = "แนวโน้มเป็นบวก แต่ต้องระวังการขาดฝึกในวัน Cardio เพื่อเร่งการเผาผลาญ";
+                } else {
+                    analysisText = "วินัยต่ำกว่าเกณฑ์ AI แนะนำให้กลับมาฝึกทันทีเพื่อรักษาฐานกล้ามเนื้อเดิม";
+                }
+
+                // Body Stat Analysis
+                if (bodyStats.length >= 2) {
+                    const latest = bodyStats[bodyStats.length - 1];
+                    const previous = bodyStats[bodyStats.length - 2];
+                    
+                    if (latest.waist < previous.waist) {
+                        analysisText += " | ตรวจพบ: รอบเอวลดลง แสดงถึงการเผาผลาญไขมันที่มีประสิทธิภาพ";
+                    } else if (latest.weight > previous.weight && doneCount > 5) {
+                        analysisText += " | ตรวจพบ: น้ำหนักเพิ่มขึ้นพร้อมวินัยที่สม่ำเสมอ เป็นสัญญาณของการเพิ่มมวลกล้ามเนื้อ";
+                    }
+                }
+
+                aiStatus.innerText = analysisText;
             }
 
-            // AI Suggestion based on the last workout day
-            if (completedDays.length > 0) {
-                const lastDayIdx = Math.max(...completedDays);
-                const today = new Date();
-                const start = new Date(startDate);
-                const dayDiff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-                
-                if (dayDiff - lastDayIdx > 3) {
-                    aiStatus.innerHTML = "<span class='text-red-400'>คุณขาดการติดต่อนานเกินไป!</span> กลับมาฝึกเดี๋ยวนี้เพื่อรักษาระดับฮอร์โมน";
-                }
+            // Recovery bar logic
+            const dayOfWeek = new Date().getDay(); // 0-6
+            const isRestDay = ![2, 4, 6].includes(dayOfWeek);
+            
+            if (isRestDay) {
+                recoveryBar.style.width = "100%";
+                recoveryBar.className = "bg-green-500 h-2 rounded-full transition-all duration-1000";
+                recoveryText.innerText = "Fully Recovered - ร่างกายซ่อมแซมเสร็จสิ้น";
+            } else {
+                recoveryBar.style.width = "60%";
+                recoveryBar.className = "bg-blue-500 h-2 rounded-full transition-all duration-1000";
+                recoveryText.innerText = "Training Mode - กล้ามเนื้อกำลังทำงาน";
             }
         }
 
