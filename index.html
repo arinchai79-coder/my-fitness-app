@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aerofit Performance</title>
+    <!-- เชื่อมต่อไฟล์ Manifest สำหรับติดตั้งลงมือถือ -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Kanit:wght@300;400;600;800&display=swap');
+        body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; }
+        .font-brand { font-family: 'Orbitron', sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; }
+        .nav-item { color: #64748b; transition: all 0.3s ease; }
+        .nav-item.active { color: #22d3ee; }
+        .btn-primary { background: linear-gradient(135deg, #22d3ee 0%, #0891b2 100%); color: #0f172a; font-weight: 800; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div id="app" class="max-w-md mx-auto min-h-screen relative overflow-hidden">
+        <!-- Header -->
+        <header class="px-6 pt-10 pb-6 relative z-10">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-brand font-black italic tracking-tighter text-white">AERO<span class="text-cyan-400">FIT</span></h1>
+                    <span class="bg-cyan-500/20 text-cyan-400 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Beginner Mode</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl glass-card flex items-center justify-center border-white/10">
+                    <i class="fa-solid fa-bolt text-cyan-400"></i>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-3 gap-3 mt-8">
+                <div class="glass-card p-3 text-center">
+                    <p class="text-[8px] font-bold text-slate-500 uppercase">Volume</p>
+                    <p id="stat-vol" class="text-sm font-black text-white">0</p>
+                </div>
+                <div class="glass-card p-3 text-center">
+                    <p class="text-[8px] font-bold text-slate-500 uppercase">Distance</p>
+                    <p id="stat-dist" class="text-sm font-black text-white">0.0</p>
+                </div>
+                <div class="glass-card p-3 text-center">
+                    <p class="text-[8px] font-bold text-slate-500 uppercase">Condition</p>
+                    <p id="stat-status" class="text-[10px] font-black text-cyan-400 uppercase">Optimal</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main View -->
+        <main id="view-port" class="px-5 space-y-6 pb-20"></main>
+
+        <!-- Nav -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-xl border-t border-white/5 z-50 max-w-md mx-auto">
+            <div class="flex justify-around items-center h-20 px-4">
+                <button onclick="router('home')" id="nav-home" class="nav-item flex-1 flex flex-col items-center gap-1 active">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    <span class="text-[9px] font-bold uppercase">หน้าหลัก</span>
+                </button>
+                <button onclick="router('log')" id="nav-log" class="nav-item flex-1 flex flex-col items-center gap-1">
+                    <div class="w-12 h-12 btn-primary rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30 -mt-10 border-4 border-slate-900">
+                        <i class="fa-solid fa-plus text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase mt-1">บันทึก</span>
+                </button>
+                <button onclick="router('guide')" id="nav-guide" class="nav-item flex-1 flex flex-col items-center gap-1">
+                    <i class="fa-solid fa-book-open text-lg"></i>
+                    <span class="text-[9px] font-bold uppercase">วิธีเล่น</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        const EXERCISES = {
+            'Incline Press': { name: 'Incline Press', focus: 'อกบน', hint: 'ปรับเบาะ 30 องศา, ดันขึ้นช้าๆ', type: 'bulk' },
+            'Lateral Raise': { name: 'Lateral Raise', focus: 'ไหล่ข้าง', hint: 'ห้ามเหวี่ยงตัว, ล็อคไหล่ให้มั่น', type: 'bulk' },
+            'Dumbbell Row': { name: 'Dumbbell Row', focus: 'หลัง/ปีก', hint: 'หลังตรง, ดึงดัมเบลหาเอว', type: 'bulk' },
+            'Treadmill': { name: 'Cardio', focus: 'หัวใจ', hint: 'เดินเร็ว 5.5-6.0 กม./ชม.', type: 'cardio' }
+        };
+
+        let logs = JSON.parse(localStorage.getItem('aerofit_logs')) || [];
+
+        function router(view) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`nav-${view}`).classList.add('active');
+            const vp = document.getElementById('view-port');
+            vp.innerHTML = '';
+            
+            if (view === 'home') renderHome(vp);
+            if (view === 'log') renderLog(vp);
+            if (view === 'guide') renderGuide(vp);
+            updateStats();
+        }
+
+        function renderHome(vp) {
+            vp.innerHTML = `
+                <div class="glass-card p-6 mb-4">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-4">Performance Chart</p>
+                    <canvas id="chart" height="150"></canvas>
+                </div>
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase px-2 mb-3">Recent Logs</h3>
+                <div id="log-list" class="space-y-3"></div>
+            `;
+            const list = document.getElementById('log-list');
+            [...logs].reverse().slice(0, 5).forEach(l => {
+                list.innerHTML += `
+                    <div class="glass-card p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-dumbbell text-cyan-400"></i>
+                            <div>
+                                <p class="text-xs font-bold text-white">${l.name}</p>
+                                <p class="text-[9px] text-slate-500">${l.weight}kg x ${l.reps}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            initChart();
+        }
+
+        function renderLog(vp) {
+            vp.innerHTML = `
+                <div class="glass-card p-8 mt-4">
+                    <h2 class="text-lg font-bold text-center mb-6">บันทึกการฝึก</h2>
+                    <div class="space-y-4">
+                        <select id="f-ex" class="w-full bg-slate-800 p-4 rounded-xl text-sm border-none outline-none" onchange="updateHint()">
+                            ${Object.keys(EXERCISES).map(k => `<option value="${k}">${EXERCISES[k].name}</option>`).join('')}
+                        </select>
+                        <p id="f-hint" class="text-[10px] text-cyan-400 italic px-2">${EXERCISES['Incline Press'].hint}</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="number" id="f-weight" placeholder="Weight (kg)" class="bg-slate-800 p-4 rounded-xl text-sm outline-none">
+                            <input type="number" id="f-reps" placeholder="Reps" class="bg-slate-800 p-4 rounded-xl text-sm outline-none">
+                        </div>
+                        <button onclick="saveLog()" class="w-full py-4 btn-primary rounded-2xl text-xs uppercase font-black">บันทึกข้อมูล</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGuide(vp) {
+            vp.innerHTML = `<h2 class="text-lg font-bold px-2 mb-4">ท่าเล่นสำหรับมือใหม่</h2>`;
+            Object.keys(EXERCISES).forEach(k => {
+                vp.innerHTML += `
+                    <div class="glass-card p-5 mb-4 border-l-4 border-cyan-500">
+                        <h4 class="font-bold text-white text-sm">${EXERCISES[k].name} (${EXERCISES[k].focus})</h4>
+                        <p class="text-[11px] text-slate-400 mt-2">${EXERCISES[k].hint}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function updateHint() {
+            document.getElementById('f-hint').innerText = EXERCISES[document.getElementById('f-ex').value].hint;
+        }
+
+        function saveLog() {
+            const name = document.getElementById('f-ex').value;
+            const weight = document.getElementById('f-weight').value;
+            const reps = document.getElementById('f-reps').value;
+            if(!weight || !reps) return;
+            logs.push({ name, weight, reps, id: Date.now() });
+            localStorage.setItem('aerofit_logs', JSON.stringify(logs));
+            router('home');
+        }
+
+        function updateStats() {
+            const vol = logs.reduce((a, b) => a + (b.weight * b.reps), 0);
+            document.getElementById('stat-vol').innerText = vol.toLocaleString();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('chart')?.getContext('2d');
+            if(!ctx) return;
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: ['M','T','W','T','F','S','S'], datasets: [{ data: [100, 200, 150, 300, 250, 400, 350], borderColor: '#22d3ee', tension: 0.4 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+            });
+        }
+
+        router('home');
+    </script>
+</body>
+</html>
