@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area 
+} from 'recharts';
 import { 
   Brain, 
   Dumbbell, 
@@ -10,7 +19,8 @@ import {
   Calendar,
   Info,
   Zap,
-  Moon
+  Moon,
+  LayoutDashboard
 } from 'lucide-react';
 
 const TRAINING_PROGRAM = {
@@ -66,10 +76,9 @@ const App = () => {
     localStorage.setItem('aerofit_phase', phase);
   }, [phase]);
 
-  const currentDay = useMemo(() => new Date().getDay(), []); // 0: Sun, 1: Mon, ..., 3: Wed
+  const currentDay = useMemo(() => new Date().getDay(), []);
 
   const aiInsight = useMemo(() => {
-    // 1. Check Rest Day
     if (currentDay === 0 || currentDay === 3) {
       return {
         status: 'Recovery Mode',
@@ -81,7 +90,6 @@ const App = () => {
       };
     }
 
-    // 2. Performance Analysis
     if (logs.length < 3) {
       return {
         status: 'Learning Mode',
@@ -144,7 +152,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-24">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-24 selection:bg-cyan-500/30">
       <div className="max-w-md mx-auto p-5">
         
         {/* Header */}
