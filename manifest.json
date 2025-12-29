@@ -1,0 +1,18 @@
+{
+"short_name": "AeroFit",
+"name": "Aerofit Performance App",
+"description": "แอปบันทึกการออกกำลังกายสำหรับมือใหม่",
+"icons": [
+{
+"src": "https://www.google.com/search?q=https://cdn-icons-png.flaticon.com/512/2964/2964514.png",
+"type": "image/png",
+"sizes": "512x512",
+"purpose": "any maskable"
+}
+],
+"start_url": "./index.html",
+"background_color": "#0f172a",
+"display": "standalone",
+"scope": "./",
+"theme_color": "#0f172a"
+}
